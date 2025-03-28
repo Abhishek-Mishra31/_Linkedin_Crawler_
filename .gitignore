@@ -1,0 +1,11 @@
+
+node_modules/
+
+
+package-lock.json
+Backend/node_modules
+Backend/.env
+
+Frotend/node_modules
+Frotend/package-lock.json
+Frotend/.env
