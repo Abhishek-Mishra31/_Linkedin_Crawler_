@@ -68,7 +68,7 @@ I welcome contributions! Feel free to:
 ✅ Fork this repository  
 ✅ Create a new branch (git checkout -b feature-branch)    
 ✅ Commit changes (git commit -m "Added new feature")    
-✅ Push to your fork (git push origin feature-branch    
+✅ Push to your fork (git push origin feature-branch)    
 ✅ Open a Pull Request  
 
 ---
