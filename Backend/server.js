@@ -9,7 +9,7 @@ const db = require("./Db");
 const bodyParser = require("body-parser");
 const cheerio = require("cheerio");
 require("dotenv").config();
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 1000;
 app.use(bodyParser.json());
 
 const userRoutes = require("./Routes/UserRoutes");
