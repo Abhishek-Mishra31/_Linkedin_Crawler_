@@ -5,6 +5,7 @@ const liveServerUrl = process.env.DB_LIVE_SERVER_URL;
 const db = mongoose.connection;
 
 console.log("db server url is " + liveServerUrl);
+console.log("db server url is " + liveServerUrl);
 mongoose.connect(dbServerUrl);
 
 db.on("connected", () => {
