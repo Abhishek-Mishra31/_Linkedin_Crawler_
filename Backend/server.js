@@ -12,7 +12,6 @@ require("dotenv").config();
 const PORT = process.env.PORT || 1000;
 app.use(bodyParser.json());
 
-const chromium = require("chrome-aws-lambda");
 const userRoutes = require("./Routes/UserRoutes");
 
 async function loadCookies(page) {
@@ -47,8 +46,8 @@ app.post("/scrape", async (req, res) => {
 
     browser = await puppeteer.launch({
       headless: true,
-      // executablePath: puppeteer.executablePath(),
-      executablePath: await chromium.executablePath,
+      executablePath: puppeteer.executablePath(),
+
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
