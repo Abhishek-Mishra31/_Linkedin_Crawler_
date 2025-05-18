@@ -28,9 +28,6 @@ async function loadCookies(page) {
   await page.setCookie(...cookies);
 }
 
-const executablePath = puppeteer.executablePath();
-console.log(executablePath);
-
 app.use("/user", userRoutes);
 
 app.post("/scrape", async (req, res) => {
