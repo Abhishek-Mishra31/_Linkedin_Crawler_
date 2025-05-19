@@ -39,6 +39,8 @@ app.post("/scrape", async (req, res) => {
 
   let browser;
   try {
+    console.log("Resolved Chrome executable path:", puppeteer.executablePath());
+
     console.log("Launching Puppeteer...");
     const executablePath = puppeteer.executablePath();
     browser = await puppeteer.launch({
@@ -50,6 +52,7 @@ app.post("/scrape", async (req, res) => {
         "--disable-dev-shm-usage",
         "--disable-blink-features=AutomationControlled",
       ],
+
     });
 
     const page = await browser.newPage();
