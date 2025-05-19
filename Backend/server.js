@@ -42,7 +42,6 @@ app.post("/scrape", async (req, res) => {
     console.log("Launching Puppeteer...");
     browser = await puppeteer.launch({
       headless: true,
-      executablePath : puppeteer.executablePath(),
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
