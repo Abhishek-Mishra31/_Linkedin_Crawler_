@@ -1,5 +1,6 @@
 const express = require("express");
 const puppeteer = require("puppeteer");
+const puppeteerExtra = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 const app = express();
 const cors = require("cors");
@@ -30,7 +31,7 @@ async function loadCookies(page) {
 }
 
 app.use("/user", userRoutes);
-puppeteer.use(StealthPlugin());
+puppeteerExtra.use(StealthPlugin());
 app.post("/scrape", async (req, res) => {
   const { profileUrl } = req.body;
 
