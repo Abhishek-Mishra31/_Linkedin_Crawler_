@@ -1,5 +1,6 @@
 const express = require("express");
 const puppeteer = require("puppeteer");
+const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 const app = express();
 const cors = require("cors");
 app.use(express.json());
@@ -29,7 +30,7 @@ async function loadCookies(page) {
 }
 
 app.use("/user", userRoutes);
-
+puppeteer.use(StealthPlugin());
 app.post("/scrape", async (req, res) => {
   const { profileUrl } = req.body;
 
@@ -48,11 +49,12 @@ app.post("/scrape", async (req, res) => {
         "--disable-dev-shm-usage",
         "--disable-blink-features=AutomationControlled",
       ],
-
     });
 
     const page = await browser.newPage();
-
+    await page.setUserAgent(
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+    );
     console.log("Loading cookies...");
     await loadCookies(page);
     console.log("Cookies loaded successfully.");
