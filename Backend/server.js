@@ -65,7 +65,12 @@ app.post("/scrape", async (req, res) => {
     await loadCookies(page);
     console.log("Cookies loaded successfully.");
     console.log("Navigating to LinkedIn profile...");
-    await page.goto(profileUrl);
+
+    await page.goto(profileUrl, {
+      waitUntil: "domcontentloaded",
+      timeout: 60000,
+    });
+    
     console.log("Navigation successful.");
 
     // 📸 DEBUG - Screenshot the page in production
