@@ -73,9 +73,29 @@ app.post("/scrape", async (req, res) => {
       timeout: 60000,
     });
 
+    // Check if the page is blocked
+    const html = await page.content();
+    if (
+      html.includes("captcha") ||
+      html.includes("form__input") ||
+      html.includes("Sign in")
+    ) {
+      await page.screenshot({
+        path: "/app/linkedin_blocked.png",
+        fullPage: true,
+      });
+      await browser.close();
+      return res.status(403).json({
+        error: "Blocked by LinkedIn. Possibly redirected to login or CAPTCHA.",
+      });
+    }
+
+    // 🕵️ Debug screenshot
+    await page.screenshot({ path: "/app/linkedin_debug.png", fullPage: true });
+
     console.log("Navigation successful.");
     console.log("Waiting for profile name element...");
-    await page.waitForSelector("h1.text-heading-xlarge", { timeout: 60000 });
+    await page.waitForSelector("h1", { timeout: 60000 });
     console.log("Profile name element found.");
 
     const pageContent = await page.content();
