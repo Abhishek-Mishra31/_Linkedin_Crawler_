@@ -75,7 +75,7 @@ app.post("/scrape", async (req, res) => {
 
     console.log("Navigation successful.");
     console.log("Waiting for profile name element...");
-    await page.waitForSelector("h1", { timeout: 60000 });
+    await page.waitForSelector("h1.text-heading-xlarge", { timeout: 60000 });
     console.log("Profile name element found.");
 
     const pageContent = await page.content();
