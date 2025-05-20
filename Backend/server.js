@@ -44,7 +44,7 @@ app.post("/scrape", async (req, res) => {
   try {
     console.log("Launching Puppeteer...");
     browser = await puppeteerExtra.launch({
-      headless: "new",
+      headless: "true",
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
