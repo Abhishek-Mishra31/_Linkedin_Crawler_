@@ -43,7 +43,7 @@ app.post("/scrape", async (req, res) => {
   let browser;
   try {
     console.log("Launching Puppeteer...");
-    browser = await puppeteer.launch({
+    browser = await puppeteerExtra.launch({
       headless: true,
       args: [
         "--no-sandbox",
@@ -70,7 +70,7 @@ app.post("/scrape", async (req, res) => {
       waitUntil: "domcontentloaded",
       timeout: 60000,
     });
-    
+
     console.log("Navigation successful.");
 
     // 📸 DEBUG - Screenshot the page in production
