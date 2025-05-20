@@ -32,6 +32,7 @@ async function loadCookies(page) {
 
 app.use("/user", userRoutes);
 puppeteerExtra.use(StealthPlugin());
+
 app.post("/scrape", async (req, res) => {
   const { profileUrl } = req.body;
 
@@ -66,6 +67,19 @@ app.post("/scrape", async (req, res) => {
     console.log("Navigating to LinkedIn profile...");
     await page.goto(profileUrl);
     console.log("Navigation successful.");
+
+    // 📸 DEBUG - Screenshot the page in production
+    await page.screenshot({ path: "linkedin_page.png", fullPage: true });
+
+    // 🧪 Check if we got redirected to login or captcha
+    const html = await page.content();
+    if (html.includes("captcha") || html.includes("form__input")) {
+      console.error("❌ Not logged in or bot detected.");
+      await browser.close();
+      return res.status(403).json({
+        error: "Blocked by LinkedIn. Possibly redirected to login or CAPTCHA.",
+      });
+    }
 
     console.log("Waiting for profile name element...");
     await page.waitForSelector("h1", { timeout: 60000 });
