@@ -44,7 +44,7 @@ app.post("/scrape", async (req, res) => {
   try {
     console.log("Launching Puppeteer...");
     browser = await puppeteerExtra.launch({
-      headless: "true",
+      headless: true,
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
@@ -72,26 +72,6 @@ app.post("/scrape", async (req, res) => {
       waitUntil: "domcontentloaded",
       timeout: 60000,
     });
-
-    // Check if the page is blocked
-    const html = await page.content();
-    if (
-      html.includes("captcha") ||
-      html.includes("form__input") ||
-      html.includes("Sign in")
-    ) {
-      await page.screenshot({
-        path: "/app/linkedin_blocked.png",
-        fullPage: true,
-      });
-      await browser.close();
-      return res.status(403).json({
-        error: "Blocked by LinkedIn. Possibly redirected to login or CAPTCHA.",
-      });
-    }
-
-    // 🕵️ Debug screenshot
-    await page.screenshot({ path: "/app/linkedin_debug.png", fullPage: true });
 
     console.log("Navigation successful.");
     console.log("Waiting for profile name element...");
@@ -131,7 +111,6 @@ app.post("/scrape", async (req, res) => {
     }
 
     console.log("Scraping completed. Sending response...");
-
     res.json({ name, imageUrl, experience, education, skills });
   } catch (error) {
     console.error("Error scraping LinkedIn profile:", error);

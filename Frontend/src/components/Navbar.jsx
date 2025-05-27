@@ -1,13 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Link } from "react-router-dom";
-
+import scrapcontext from "../context/scrapeApi/ScrapContext";
 const webScrap = require("../Assests/web-scraper.png");
 
-const Navbar = ({ authenticated }) => {
+const Navbar = ({ Isauthenticated }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const { authenticated, setAuthenticated } = useContext(scrapcontext);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    setAuthenticated(false);
     window.location.href = "/login";
   };
 
@@ -46,7 +48,7 @@ const Navbar = ({ authenticated }) => {
             isOpen ? "block" : "hidden"
           } md:flex md:items-center w-full md:w-auto mt-4 md:mt-0`}
         >
-          {!authenticated && (
+          {!Isauthenticated && (
             <ul className="flex flex-col md:flex-row md:space-x-6 text-lg">
               <li>
                 <Link
@@ -78,7 +80,7 @@ const Navbar = ({ authenticated }) => {
             </ul>
           )}
         </div>
-        {authenticated && (
+        {Isauthenticated && (
           <button
             onClick={handleLogout}
             className=" flex justify-end bg-red-600 hover:bg-red-700 text-white font-semibold px-5 py-2 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"

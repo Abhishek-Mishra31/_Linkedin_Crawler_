@@ -27,7 +27,7 @@ function App() {
   return (
     <div className="App">
       <Router>
-        <Navbar authenticated={authenticated} />
+        <Navbar Isauthenticated={authenticated} />
         <Routes>
           <Route
             exact
