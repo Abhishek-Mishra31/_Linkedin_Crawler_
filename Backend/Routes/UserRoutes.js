@@ -35,14 +35,16 @@ router.post("/login", async (req, res) => {
   try {
     let success = false;
     const { email, password } = req.body;
-    // find the user by its email
+
+    if (!email || !password) {
+      return res.status(400).json({ error: "Please fill all the fields" });
+    }
+
     const user = await User.findOne({ email: email });
-    // if user is not available or entered password is not match by user's password -- return error
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ error: "Incorrect Username or Password" });
     }
 
-    // generate the token
     const payload = {
       id: user.id,
     };
@@ -50,7 +52,7 @@ router.post("/login", async (req, res) => {
     success = true;
     res.json({ success: success, user: user, token: token });
   } catch (error) {
-    console.log(error);
+    console.log(error);no
     res.status(500).json(error);
   }
 });
