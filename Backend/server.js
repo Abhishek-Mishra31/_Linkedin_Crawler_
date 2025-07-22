@@ -138,6 +138,119 @@ app.post("/contact", async (req, res) => {
   }
 });
 
+app.post("/search", async (req, res) => {
+  const { username } = req.body;
+
+  if (!username) {
+    return res.status(400).json({ error: "username parameter is required" });
+  }
+
+  let browser;
+  try {
+    console.log("Launching Puppeteer for LinkedIn search...");
+    browser = await puppeteer.launch({
+      headless: true,
+      executablePath: puppeteer.executablePath(),
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-blink-features=AutomationControlled",
+      ],
+    });
+
+    const page = await browser.newPage();
+    await loadCookies(page);
+
+    const encodedName = encodeURIComponent(username);
+    const searchUrl = `https://www.linkedin.com/search/results/people/?keywords=${encodedName}`;
+
+    console.log("Navigating to LinkedIn search...");
+    await page.goto(searchUrl);
+
+    await page.waitForSelector("li.vUkNNwUISrgZFPDatSVQLQokJWCKMMlSXl", {
+      timeout: 60000,
+    });
+
+    const extractProfiles = async () => {
+      return await page.evaluate(() => {
+        const profiles = [];
+        const results = document.querySelectorAll(
+          "li.vUkNNwUISrgZFPDatSVQLQokJWCKMMlSXl"
+        );
+
+        results.forEach((result) => {
+          const nameElement = result.querySelector(
+            "a.icZEwaEXFdsQkNEzPGPZvPcFXAEnhiburFinFQ span[dir='ltr'] span[aria-hidden='true']"
+          );
+          const headlineElement = result.querySelector(
+            ".sxyhSyVfgMfTeCGAeUcFHxaUAlruzqNuONrk"
+          );
+          const locationElement = result.querySelector(
+            ".TtaxuIgrYYQviYTtDffddHAViLttGzaJCYgOqU"
+          );
+          const imageElement = result.querySelector(".presence-entity__image");
+          const linkElement = result.querySelector("a.icZEwaEXFdsQkNEzPGPZvPcFXAEnhiburFinFQ");
+
+          if (nameElement) {
+            const name = nameElement.textContent.trim();
+            const headline = headlineElement
+              ? headlineElement.textContent.trim()
+              : "";
+            const location = locationElement
+              ? locationElement.textContent.trim()
+              : "";
+            const imageUrl = imageElement
+              ? imageElement.getAttribute("src")
+              : null;
+
+            const profileUrl = linkElement
+              ? linkElement.href.split("?")[0]
+              : "";
+
+            profiles.push({
+              name,
+              headline,
+              location,
+              imageUrl,
+              profileUrl,
+            });
+          }
+        });
+
+        return profiles;
+      });
+    };
+
+    const scrollAndWait = async () => {
+      await page.evaluate(() => {
+        window.scrollTo(0, document.body.scrollHeight);
+      });
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    };
+
+    for (let i = 0; i < 3; i++) {
+      await scrollAndWait();
+    }
+
+    const profiles = await extractProfiles();
+    console.log(`Found ${profiles.length} profiles`);
+
+    res.json({ profiles });
+  } catch (error) {
+    console.error("Error searching LinkedIn profiles:", error);
+    res.status(500).json({
+      error: "Failed to search LinkedIn profiles",
+      details: error.message,
+    });
+  } finally {
+    if (browser) {
+      console.log("Closing Puppeteer...");
+      await browser.close();
+    }
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

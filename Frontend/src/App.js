@@ -14,52 +14,83 @@ import {
   Route,
   Routes,
   Navigate,
+  useLocation,
 } from "react-router-dom";
 
-function App() {
-  const { authenticated, setAuthenticated } = useContext(scrapcontext);
+const AppContent = ({ authenticated, setAuthenticated }) => {
+  const location = useLocation();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     setAuthenticated(!!token);
-  });
+  }, [setAuthenticated]);
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Navbar Isauthenticated={authenticated} />
+      <Routes>
+        <Route
+          path="/dashboard"
+          element={
+            authenticated ? (
+              <Dashboard />
+            ) : (
+              <Navigate
+                to="/login"
+                state={{ from: location.pathname }}
+                replace
+              />
+            )
+          }
+        />
+
+        <Route
+          path="/register"
+          element={
+            !authenticated ? <Register /> : <Navigate to="/dashboard" replace />
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            !authenticated ? <Login /> : <Navigate to="/dashboard" replace />
+          }
+        />
+        <Route
+          path="/about"
+          element={
+            !authenticated ? <About /> : <Navigate to="/dashboard" replace />
+          }
+        />
+        <Route
+          path="/contact"
+          element={
+            !authenticated ? <Contact /> : <Navigate to="/dashboard" replace />
+          }
+        />
+
+        <Route
+          path="/"
+          element={
+            authenticated ? <Navigate to="/dashboard" replace /> : <HomePage />
+          }
+        />
+      </Routes>
+      <Footer />
+    </div>
+  );
+};
+
+function App() {
+  const { authenticated, setAuthenticated } = useContext(scrapcontext);
 
   return (
     <div className="App">
       <Router>
-        <Navbar Isauthenticated={authenticated} />
-        <Routes>
-          <Route
-            exact
-            path="/dashboard"
-            element={authenticated ? <Dashboard /> : <Navigate to="/login" />}
-          />
-          <Route exact path="/register" element={<Register />} />
-          <Route
-            exact
-            path="/login"
-            element={authenticated ? <Navigate to="/dashboard" /> : <Login />}
-          />
-
-          <Route
-            exact
-            path="/"
-            element={
-              authenticated ? <Navigate to="/Dashboard" /> : <HomePage />
-            }
-          />
-          <Route
-            exact
-            path="/about"
-            element={authenticated ? <Navigate to="/Dashboard" /> : <About />}
-          />
-          <Route
-            exact
-            path="/contact"
-            element={authenticated ? <Navigate to="/Dashboard" /> : <Contact />}
-          />
-        </Routes>
-        <Footer />
+        <AppContent
+          authenticated={authenticated}
+          setAuthenticated={setAuthenticated}
+        />
       </Router>
     </div>
   );

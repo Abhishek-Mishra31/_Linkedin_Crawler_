@@ -47,6 +47,18 @@ const ScrapState = (props) => {
     setAuthenticated(false);
   };
 
+  const getUserData = async (username) => {
+    const response = await fetch(`${host}/search`, {
+      method: "POST",
+      headers: {
+        "Content-type": "application/json",
+      },
+      body: JSON.stringify({ username }),
+    });
+    const result = await response.json();
+    return result;
+  };
+
   const scrapeData = async (profileUrl) => {
     const scrapeUrl = `${host}/scrape`;
     const response = await fetch(scrapeUrl, {
@@ -81,6 +93,7 @@ const ScrapState = (props) => {
         logout,
         userSignup,
         userLogin,
+        getUserData,
         scrapeData,
         contactMe,
       }}

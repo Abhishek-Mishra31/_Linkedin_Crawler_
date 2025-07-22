@@ -1,106 +1,117 @@
 import { React, useState, useContext, useRef, useEffect } from "react";
 import { jsPDF } from "jspdf";
+import { useNavigate } from 'react-router-dom';
 import scrapcontext from "../context/scrapeApi/ScrapContext";
+import ScrapedProfile from "./ScrapedProfile";
 
 const Dashboard = () => {
-  const [input, setInput] = useState({ dataUrl: "" });
+  const [input, setInput] = useState({ username: "" });
   const [error, setError] = useState("");
-  const [resp, setResp] = useState(null);
+
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError("");
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+  const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState(null);
+  const navigate = useNavigate();
   const context = useContext(scrapcontext);
-  const { scrapeData } = context;
-  const scrapeRef = useRef(null);
+  const { getUserData, scrapeData } = context;
+  const responseRef = useRef(null);
+
+  const validateUsername = (username) => {
+    const nameParts = username.trim().split(/\s+/);
+    if (nameParts.length < 2 || nameParts.some(part => part.length < 2)) {
+      return false;
+    }
+    
+    const namePartRegex = /^[\p{L}'-]{2,50}$/u;
+    return nameParts.every(part => namePartRegex.test(part));
+  };
 
   const handleChange = (e) => {
     e.preventDefault();
     setInput({ ...input, [e.target.name]: e.target.value });
+    if (error) setError("");
   };
-
-  const handleScrape = async () => {
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      if (!input.dataUrl.trim()) {
-        setError("Please enter a valid LinkedIn URL.");
+      const username = input.username.trim();
+      
+      if (!username) {
+        setError("👤 Please enter a username to continue");
         return;
       }
+      
+      if (!validateUsername(username)) {
+        setError("Please enter both first and last name (each at least 2 characters long)");
+        return;
+      }
+      
       setLoading(true);
-      const data = await scrapeData(input.dataUrl);
-      setResp(data);
-      setInput({ dataUrl: "" });
+      setSelectedProfile(null);
+      
+      try {
+        const data = await getUserData(username);
+        if (!data || !data.profiles) {
+          throw new Error('No profiles found');
+        }
+        setProfiles(data.profiles);
+        setInput({ username: "" });
+      } catch (error) {
+        console.error('API Error:', error);
+        setProfiles([]);
+      }
+      
+      setLoading(false);
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      setProfiles([]);
+      setLoading(false);
+    }
+  };
+
+  const handleProfileClick = async (profileUrl) => {
+    try {
+      setLoading(true);
+      const detailedData = await scrapeData(profileUrl);
+      setSelectedProfile(detailedData);
       setLoading(false);
     } catch (error) {
       console.log(error.message);
-      setResp(null);
+      setError("Failed to fetch profile details. Please try again.");
+      setLoading(false);
     }
   };
 
-  async function getImageAsBase64(url) {
-    const response = await fetch(url);
-    const blob = await response.blob();
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  }
-
-  async function createPdf(data) {
-    const doc = new jsPDF();
-
-    let x = 10;
-    let y = 10;
-    const pageWidth = doc.internal.pageSize.width;
-    const fontSize = 12;
-    doc.setFont("Helvetica", "normal");
-    doc.setFontSize(fontSize);
-
-    const sanitize = (text) =>
-      typeof text === "string" ? text.replace(/[^\w\s.,-]/g, "") : "";
-    const name = sanitize(data.name);
-    const experience = sanitize(data.experience[0]);
-    const education = sanitize(data.education);
-
-    if (data.imageUrl) {
-      const base64Image = await getImageAsBase64(data.imageUrl);
-      if (base64Image) {
-        const imgWidth = 50;
-        const imgHeight = 50;
-        const x = (pageWidth - imgWidth) / 2;
-        doc.addImage(base64Image, "JPEG", x, y, imgHeight, imgWidth);
-        y += imgHeight + 10;
-      }
-    }
-
-    doc.text(`Name: ${name}`, x, y);
-    y += 10;
-
-    const experienceLines = doc.splitTextToSize(
-      `Experience: ${experience}`,
-      180
-    );
-    doc.text(experienceLines, x, y);
-    y += experienceLines.length * 8;
-
-    const educationLines = doc.splitTextToSize(`Education: ${education}`, 180);
-    doc.text(educationLines, x, y);
-    y += educationLines.length * 8;
-
-    const skillsLines = doc.splitTextToSize(`Skills: ${data.skills}`, 180);
-    doc.text(skillsLines, x, y);
-
-    doc.save(`${name}_LinkedIn_Details.pdf`);
-  }
-
-  const scrollToScrape = () => {
-    scrapeRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const scrollToResponse = () => {
+    responseRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   useEffect(() => {
-    window.history.pushState(null, "", window.location.href);
-    window.onpopstate = () => {
-      window.history.pushState(null, "", window.location.href);
+    const handlePopState = () => {
+      setSelectedProfile(null);
     };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
+
+  const handleBack = () => {
+    setSelectedProfile(null);
+    window.history.pushState(null, "", window.location.href);
+  };
+  
+  if (selectedProfile) {
+    return <ScrapedProfile profileData={selectedProfile} onBack={handleBack} />;
+  }
 
   return (
     <>
@@ -120,7 +131,7 @@ const Dashboard = () => {
             hiring, networking, or sales growth.
           </p>
           <button
-            onClick={scrollToScrape}
+            onClick={scrollToResponse}
             className="px-6 py-3 rounded-full bg-blue-500 text-white font-semibold text-lg shadow-lg transition-all duration-300 hover:bg-blue-600 hover:scale-105 animate-bounce"
           >
             Get Started
@@ -130,85 +141,97 @@ const Dashboard = () => {
         <div className="absolute bottom-0 left-0 right-0 w-full h-24 bg-gradient-to-t from-[#0f172a] to-transparent"></div>
 
         <div
-          ref={scrapeRef}
+          ref={responseRef}
           className="mt-32 w-full flex flex-col md:flex-row items-center justify-center gap-4 p-4"
         >
           <div className="relative w-full max-w-md">
             <input
-              name="dataUrl"
-              value={input.dataUrl}
+              name="username"
+              value={input.username}
               onChange={handleChange}
               className="w-full px-5 py-3 text-lg text-gray-900 bg-white border border-gray-300 rounded-full shadow-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 transition duration-300"
-              placeholder="Enter LinkedIn URL..."
+              placeholder="Enter username..."
             />
 
-            {error && <p className="text-red-500 text-xl mt-2">{error}</p>}
+            {error && (
+              <div className="absolute left-0 right-0 -bottom-8 mt-1">
+                <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-3 rounded-md shadow-lg animate-fade-in">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm font-medium">{error}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-              🔗
+              👤
             </div>
           </div>
 
           <button
             type="submit"
-            onClick={(e) => {
-              e.preventDefault();
-              handleScrape();
-            }}
+            onClick={(e) => handleSubmit(e)}
             className="flex items-center gap-2 px-6 py-3 text-lg font-semibold text-white bg-gradient-to-r from-blue-500 to-purple-500 rounded-full shadow-lg transition duration-300 transform hover:scale-105 hover:from-purple-500 hover:to-blue-500 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800"
           >
-            Scrape
+            Search
           </button>
         </div>
       </section>
 
       {loading ? (
         <div className="flex flex-col items-center justify-center mt-10">
-          <div className="spinner"></div>
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
           <p className="mt-4 text-gray-300 text-lg font-medium animate-pulse">
-            This may take a while, please wait...
+            Fetching data, please wait...
           </p>
         </div>
-      ) : resp ? (
-        <section className="body-font bg-gray-900 text-gray-400">
-          <div className="container mx-auto flex flex-col items-center justify-center px-5 py-24">
-            <img
-              className=" myImg mb-10 w-5/6 rounded object-cover object-center 
-              md:w-3/6 
-              lg:w-2/6"
-              alt="some error occured"
-              src={resp?.imageUrl}
-            />
-            <div className="mb-16 flex w-full flex-col items-center text-center md:w-2/3">
-              <h1 className="title-font mb-4 text-3xl font-medium text-white sm:text-4xl">
-                {resp?.name}
-              </h1>
-              <br></br>
-              <strong>
-                <p>Summary: </p>
-              </strong>
-              <p className="mb-8 leading-relaxed">{resp?.experience[0]}</p>
-              <strong>
-                <p>Education: </p>
-              </strong>
-              <p className="mb-8 leading-relaxed">{resp?.education}</p>
-              <strong>
-                <p>Skills: </p>
-              </strong>
-              <p className="mb-8 leading-relaxed">{resp?.skills}</p>
-            </div>
-
-            <div className="flex">
-              <button
-                className="ml-auto flex rounded border-0 bg-indigo-800 px-6 py-2 text-white hover:bg-indigo-600 focus:outline-none"
-                onClick={() => createPdf(resp)}
-              >
-                Generate pdf
-              </button>
-            </div>
+      ) : (
+        <section className="body-font bg-gray-900 text-gray-400 py-12">
+          <div className="container mx-auto px-5">
+            {profiles.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {profiles.map((profile, index) => (
+                  <div
+                    key={index}
+                    onClick={() => handleProfileClick(profile.profileUrl)}
+                    className="bg-gray-800 rounded-xl p-6 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:bg-gray-750"
+                  >
+                    <div className="flex items-center gap-4">
+                      {profile.imageUrl ? (
+                        <img
+                          src={profile.imageUrl}
+                          alt={profile.name}
+                          className="w-16 h-16 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center">
+                          <span className="text-2xl">👤</span>
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <h2 className="text-xl font-semibold text-white mb-2">
+                          {profile.name}
+                        </h2>
+                        <p className="text-sm text-gray-300 line-clamp-2">
+                          {profile.headline}
+                        </p>
+                        <p className="text-sm text-gray-400 mt-2">
+                          📍 {profile.location}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
-      ) : (
-        <p></p>
       )}
     </>
   );
