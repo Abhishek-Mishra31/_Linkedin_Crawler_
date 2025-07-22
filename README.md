@@ -38,7 +38,7 @@ Follow these instructions to get a copy of the project up and running on your lo
 
 1. **Clone the repository:**
    ```sh
-   git clone https://github.com/your-username/linkedin-crawler.git
+   git clone https://github.com/Abhishek-Mishra31/linkedin-crawler.git
    cd linkedin-crawler
    ```
 
@@ -97,6 +97,6 @@ Follow these instructions to get a copy of the project up and running on your lo
 
 ## Contact
 
-Your Name - [@your_twitter](https://twitter.com/your_twitter) - email@example.com
+Your Name - [@_AsyncBytes_](https://x.com/_AsyncBytes_) - abhishek.kumar.devx@gmail.com
 
-Project Link: [https://github.com/your-username/linkedin-crawler](https://github.com/your-username/linkedin-crawler)
+Project Link: [https://github.com/your-username/linkedin-crawler](https://github.com/Abhishek-Mishra31/_linkedin_crawler_)
