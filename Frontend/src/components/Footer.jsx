@@ -17,21 +17,21 @@ const Footer = () => {
 
         <div className="text-center text-sm mt-4 md:mt-0">
           <p className="text-gray-400">
-            © 2025 LinkCrawler —
+            © 2025 LinkCrawler
             <a
-              href="https://x.com/Abhishe09449303"
+              href="https://x.com/_AsyncBytes_"
               className="text-indigo-400 ml-1 hover:underline"
               target="_blank"
               rel="noopener noreferrer"
             >
-              @Abhishek_Mishra
+              @_AsyncBytes_
             </a>
           </p>
         </div>
 
         <div className="flex space-x-4 mt-4 md:mt-0">
           <a
-            href="https://x.com/Abhishe09449303"
+            href="https://x.com/_AsyncBytes_"
             target="_blank"
             rel="noopener noreferrer"
             className="text-gray-400 hover:text-indigo-400 transition duration-300"
@@ -41,7 +41,7 @@ const Footer = () => {
             </svg>
           </a>
           <a
-            href="https://www.instagram.com/https_a_b_h_i_/"
+            href="https://www.instagram.com/async.bytes_/"
             target="_blank"
             rel="noopener noreferrer"
             className="text-gray-400 hover:text-pink-400 transition duration-300"

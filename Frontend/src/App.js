@@ -1,5 +1,5 @@
 import "./App.css";
-import { useEffect, useContext } from "react";
+import { useEffect, useContext, useState } from "react";
 import About from "./components/About";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
@@ -19,11 +19,17 @@ import {
 
 const AppContent = ({ authenticated, setAuthenticated }) => {
   const location = useLocation();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     setAuthenticated(!!token);
+    setLoading(false);
   }, [setAuthenticated]);
+
+  if (loading) {
+    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen flex flex-col">

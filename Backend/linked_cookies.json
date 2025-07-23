@@ -1,0 +1,17 @@
+[
+  {
+    "name": "li_at",
+    "value": "AQEDATTcOX4DYNrqAAABmDguAvUAAAGYXDqG9VYAITkmHHwyCu3zJli_E1N7TvK1Umr85v8hP4clu160IBYR9__Yj18oFwJIjTrIS5Pt7isR3QvQ2LGcfama5m197AF_DjQlM67Nykme0KFp9fJuB6kE",
+    "domain": ".www.linkedin.com",
+    "path": "/",
+    "expires": 1784825194.561971,
+    "size": 157,
+    "httpOnly": true,
+    "secure": true,
+    "session": false,
+    "sameSite": "None",
+    "priority": "Medium",
+    "sameParty": false,
+    "sourceScheme": "Secure"
+  }
+]

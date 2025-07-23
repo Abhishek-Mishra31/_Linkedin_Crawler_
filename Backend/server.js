@@ -9,6 +9,8 @@ const cheerio = require("cheerio");
 require("dotenv").config();
 const PORT = process.env.PORT || 1000;
 const db = require("./db");
+const fs = require("fs");
+const { loginAndGetSessionCookie } = require("./linkedinLogin");
 
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 puppeteer.use(StealthPlugin());
@@ -16,12 +18,18 @@ puppeteer.use(StealthPlugin());
 app.use("/user", require("./Routes/UserRoutes"));
 
 async function loadCookies(page) {
-  const cookiesJson = process.env.LINKEDIN_COOKIES;
-  if (!cookiesJson) {
-    console.error("Cookies not found in environment variables.");
-    throw new Error("Cookies not found. Set cookies in the environment.");
+  let cookies;
+  if (!fs.existsSync("linked_cookies.json")) {
+    console.log("Cookies file not found, running login script...");
+    cookies = await loginAndGetSessionCookie();
+    if (!cookies) {
+      throw new Error("Failed to log in and get cookies.");
+    }
+  } else {
+    const cookiesJson = fs.readFileSync("linked_cookies.json");
+    cookies = JSON.parse(cookiesJson);
   }
-  const cookies = JSON.parse(cookiesJson);
+
   console.log("Cookies loaded:", cookies);
   await page.setCookie(...cookies);
 }
@@ -250,6 +258,13 @@ app.post("/search", async (req, res) => {
     }
   }
 });
+
+(async () => {
+  if (!fs.existsSync("linked_cookies.json")) {
+    console.log("Cookies file not found, running login script on startup...");
+    await loginAndGetSessionCookie();
+  }
+})();
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
