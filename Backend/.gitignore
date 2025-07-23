@@ -1,0 +1,10 @@
+/node_modules
+.DS_Store
+.env
+./node_modules
+/package-lock.json
+/package.json
+/dist
+/linked_cookies.json
+/nodemon.json
+
