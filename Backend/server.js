@@ -174,9 +174,9 @@ app.post("/search", async (req, res) => {
     const searchUrl = `https://www.linkedin.com/search/results/people/?keywords=${encodedName}`;
 
     console.log("Navigating to LinkedIn search...");
-    await page.goto(searchUrl);
+    await page.goto(searchUrl, { waitUntil: "networkidle2" });
 
-    await page.waitForSelector("li.vUkNNwUISrgZFPDatSVQLQokJWCKMMlSXl", {
+    await page.waitForSelector(".search-results-container li", {
       timeout: 60000,
     });
 
@@ -184,33 +184,46 @@ app.post("/search", async (req, res) => {
       return await page.evaluate(() => {
         const profiles = [];
         const results = document.querySelectorAll(
-          "li.vUkNNwUISrgZFPDatSVQLQokJWCKMMlSXl"
+          ".search-results-container li"
         );
 
         results.forEach((result) => {
-          const nameElement = result.querySelector(
-            "a.icZEwaEXFdsQkNEzPGPZvPcFXAEnhiburFinFQ span[dir='ltr'] span[aria-hidden='true']"
+          const isProfileCard = result.querySelector(
+            'div[data-view-name="search-entity-result-universal-template"]'
           );
-          const headlineElement = result.querySelector(
-            ".sxyhSyVfgMfTeCGAeUcFHxaUAlruzqNuONrk"
-          );
-          const locationElement = result.querySelector(
-            ".TtaxuIgrYYQviYTtDffddHAViLttGzaJCYgOqU"
-          );
-          const imageElement = result.querySelector(".presence-entity__image");
-          const linkElement = result.querySelector("a.icZEwaEXFdsQkNEzPGPZvPcFXAEnhiburFinFQ");
+          if (!isProfileCard) {
+            return;
+          }
 
-          if (nameElement) {
+          const nameElement = result.querySelector(
+            "span[dir='ltr'] > span[aria-hidden='true']"
+          );
+          const linkElement = result.querySelector(
+            "a[data-test-app-aware-link]"
+          );
+          const imageElement = result.querySelector(
+            "img.presence-entity__image"
+          );
+
+          const nameContainer = result.querySelector(".t-roman.t-sans");
+          const headlineElement = nameContainer
+            ? nameContainer.nextElementSibling
+            : null;
+          const locationElement = headlineElement
+            ? headlineElement.nextElementSibling
+            : null;
+
+          if (nameElement && linkElement) {
             const name = nameElement.textContent.trim();
             const headline = headlineElement
               ? headlineElement.textContent.trim()
               : "";
+
             const location = locationElement
-              ? locationElement.textContent.trim()
+              ? locationElement.innerText.split("\n")[0]
               : "";
-            const imageUrl = imageElement
-              ? imageElement.getAttribute("src")
-              : null;
+
+            const imageUrl = imageElement ? imageElement.src : null;
 
             const profileUrl = linkElement
               ? linkElement.href.split("?")[0]
