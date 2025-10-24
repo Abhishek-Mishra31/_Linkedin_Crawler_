@@ -179,7 +179,7 @@ app.post("/search", async (req, res) => {
     const searchUrl = `https://www.linkedin.com/search/results/people/?keywords=${encodedName}`;
 
     console.log("Navigating to LinkedIn search...");
-    await page.goto(searchUrl, { waitUntil: "networkidle2" });
+    await page.goto(searchUrl, { waitUntil: "domcontentloaded" });
 
     await page.waitForSelector(".search-results-container li", {
       timeout: 60000,
