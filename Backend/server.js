@@ -1,5 +1,6 @@
 const express = require("express");
 const puppeteer = require("puppeteer-extra");
+const { Browser, page, Protocol } = require("puppeteer");
 const app = express();
 const cors = require("cors");
 app.use(express.json());
@@ -13,6 +14,7 @@ const fs = require("fs");
 const { loginAndGetSessionCookie } = require("./linkedinLogin");
 
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
+const { executablePath } = require("puppeteer");
 puppeteer.use(StealthPlugin());
 
 app.use("/user", require("./Routes/UserRoutes"));
@@ -41,18 +43,19 @@ app.post("/scrape", async (req, res) => {
     return res.status(400).json({ error: "Profile URL is required" });
   }
 
-  let browser;
+  let browser = Browser || undefined;
   try {
     console.log("Launching Puppeteer...");
-
     browser = await puppeteer.launch({
       headless: true,
-      executablePath: puppeteer.executablePath(),
+      executablePath: executablePath(),
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
         "--disable-dev-shm-usage",
         "--disable-blink-features=AutomationControlled",
+        "--disable-web-security",
+        "--disable-features=VizDisplayCompositor",
       ],
     });
 
@@ -158,12 +161,14 @@ app.post("/search", async (req, res) => {
     console.log("Launching Puppeteer for LinkedIn search...");
     browser = await puppeteer.launch({
       headless: true,
-      executablePath: puppeteer.executablePath(),
+      executablePath: executablePath(),
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
         "--disable-dev-shm-usage",
         "--disable-blink-features=AutomationControlled",
+        "--disable-web-security",
+        "--disable-features=VizDisplayCompositor",
       ],
     });
 
@@ -272,13 +277,9 @@ app.post("/search", async (req, res) => {
   }
 });
 
-(async () => {
-  if (!fs.existsSync("linked_cookies.json")) {
-    console.log("Cookies file not found, running login script on startup...");
-    await loginAndGetSessionCookie();
-  }
-})();
-
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Server is running on http://localhost:${PORT}`);
+  console.log("Running login script on server startup...");
+  await loginAndGetSessionCookie();
+  console.log("Login script completed.");
 });
