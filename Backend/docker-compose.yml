@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  linkedin-crawler-backend:
+    build: .
+    container_name: linkedin-crawler-api
+    ports:
+      - "8000:8000"
+    environment:
+      - NODE_ENV=production
+      - EMAIL=${EMAIL}
+      - PASSWORD=${PASSWORD}
+      - RECEIVER_EMAIL=${RECEIVER_EMAIL}
+      - DB_SERVER_URL=${DB_SERVER_URL}
+      - DB_LIVE_SERVER_URL=${DB_LIVE_SERVER_URL}
+      - SECRET_KEY=${SECRET_KEY}
+      - PORT=8000
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_EMAIL=${DB_EMAIL}
+    env_file:
+      - .env
+    volumes:
+      # Mount for persistent cookies storage
+      - ./linked_cookies.json:/usr/src/app/linked_cookies.json:rw
+      # Mount for logs (optional)
+      - ./logs:/usr/src/app/logs
+    restart: unless-stopped
+    networks:
+      - linkedin-crawler-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Add a local MongoDB service if you want to use local database instead of cloud
+  # mongodb:
+  #   image: mongo:6.0
+  #   container_name: linkedin-crawler-db
+  #   ports:
+  #     - "27017:27017"
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: admin
+  #     MONGO_INITDB_ROOT_PASSWORD: password
+  #     MONGO_INITDB_DATABASE: linkedin-scraper
+  #   volumes:
+  #     - mongodb_data:/data/db
+  #   networks:
+  #     - linkedin-crawler-network
+  #   restart: unless-stopped
+
+networks:
+  linkedin-crawler-network:
+    driver: bridge
+
+# Uncomment if using local MongoDB
+# volumes:
+#   mongodb_data:

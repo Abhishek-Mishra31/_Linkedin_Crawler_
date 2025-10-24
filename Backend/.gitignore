@@ -7,4 +7,6 @@
 /dist
 /linked_cookies.json
 /nodemon.json
+/.dockerignore
+/README-Docker.md
 

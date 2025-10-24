@@ -9,7 +9,7 @@ app.use(cors());
 const cheerio = require("cheerio");
 require("dotenv").config();
 const PORT = process.env.PORT || 1000;
-const db = require("./db");
+const db = require("./Db");
 const fs = require("fs");
 const { loginAndGetSessionCookie } = require("./linkedinLogin");
 
@@ -18,6 +18,15 @@ const { executablePath } = require("puppeteer");
 puppeteer.use(StealthPlugin());
 
 app.use("/user", require("./Routes/UserRoutes"));
+
+// Health check endpoint for Docker
+app.get("/health", (req, res) => {
+  res.status(200).json({ 
+    status: "OK", 
+    timestamp: new Date().toISOString(),
+    service: "LinkedIn Crawler Backend"
+  });
+});
 
 async function loadCookies(page) {
   let cookies;
