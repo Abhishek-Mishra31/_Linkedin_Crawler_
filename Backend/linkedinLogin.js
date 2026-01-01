@@ -45,7 +45,7 @@ async function loginAndGetSessionCookie() {
       throw new Error("li_at cookie not found after login.");
     }
 
-        const cookies = [liAtCookie];
+    const cookies = [liAtCookie];
     fs.writeFileSync("linked_cookies.json", JSON.stringify(cookies, null, 2));
     console.log("Cookies saved to linked_cookies.json");
 

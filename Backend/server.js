@@ -21,8 +21,8 @@ app.use("/user", require("./Routes/UserRoutes"));
 
 // Health check endpoint for Docker
 app.get("/health", (req, res) => {
-  res.status(200).json({ 
-    status: "OK", 
+  res.status(200).json({
+    status: "OK",
     timestamp: new Date().toISOString(),
     service: "LinkedIn Crawler Backend"
   });
@@ -74,7 +74,7 @@ app.post("/scrape", async (req, res) => {
     await loadCookies(page);
     console.log("Cookies loaded successfully.");
     console.log("Navigating to LinkedIn profile...");
-    await page.goto(profileUrl);
+    await page.goto(profileUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
     console.log("Navigation successful.");
 
     console.log("Waiting for profile name element...");
@@ -285,6 +285,7 @@ app.post("/search", async (req, res) => {
     }
   }
 });
+
 
 app.listen(PORT, async () => {
   console.log(`Server is running on http://localhost:${PORT}`);
